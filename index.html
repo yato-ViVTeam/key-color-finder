@@ -15,8 +15,8 @@
 
     <div class="max-w-4xl mx-auto p-6">
         <header class="text-center mb-10 mt-8">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">🎨 クロマキー最適色ファインダー</h1>
-            <p class="text-gray-600">3DやLive2Dのテクスチャから、約1677万色の中で一番「使われていないほど遠い色」を計算します。</p>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">🎨 最適色摘出ツール</h1>
+            <p class="text-gray-600">3DやLive2Dのテクスチャから、約1677万色の中で一番「使われていないほど遠い色」を数値的に計算します。</p>
         </header>
 
         <main class="space-y-8">
@@ -64,7 +64,7 @@
                 <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-lg mb-8 max-w-2xl mx-auto">
                     <h3 class="text-sm font-bold text-indigo-800 mb-2 flex items-center">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                        解析レポート（理論的根拠）
+                        解析レポート
                     </h3>
                     <p class="text-sm text-gray-700 mb-3 leading-relaxed">
                         提案された色は、テクスチャ内で使用されているどのピクセルからも、RGB色空間（最大距離441.67）において<br>
@@ -290,10 +290,20 @@
 
                 for (const data of allPixelDataArrays) {
                     for (let p = 0; p < data.length; p += 4) {
-                        if (data[p+3] === 0) continue; // 透明は無視
-                        const rIdx = Math.floor(data[p] / CELL_SIZE);
-                        const gIdx = Math.floor(data[p+1] / CELL_SIZE);
-                        const bIdx = Math.floor(data[p+2] / CELL_SIZE);
+                        const r = data[p];
+                        const g = data[p+1];
+                        const b = data[p+2];
+                        const a = data[p+3];
+
+                        if (a === 0) continue; // 透明は無視
+
+                        // GB用の緑(00FF00)とBB用の青(0000FF)を無視
+                        if (r === 0 && g === 255 && b === 0) continue;
+                        if (r === 0 && g === 0 && b === 255) continue;
+
+                        const rIdx = Math.floor(r / CELL_SIZE);
+                        const gIdx = Math.floor(g / CELL_SIZE);
+                        const bIdx = Math.floor(b / CELL_SIZE);
                         usedGrids.add(`${rIdx},${gIdx},${bIdx}`);
                     }
                 }
@@ -356,8 +366,18 @@
                     let minActualSqDist = Infinity;
                     for (const data of allPixelDataArrays) {
                         for (let p = 0; p < data.length; p += 4) {
-                            if (data[p+3] === 0) continue;
-                            const sqDist = (c.r - data[p])**2 + (c.g - data[p+1])**2 + (c.b - data[p+2])**2;
+                            const r = data[p];
+                            const g = data[p+1];
+                            const b = data[p+2];
+                            const a = data[p+3];
+
+                            if (a === 0) continue;
+
+                            // GB用の緑(00FF00)とBB用の青(0000FF)を無視
+                            if (r === 0 && g === 255 && b === 0) continue;
+                            if (r === 0 && g === 0 && b === 255) continue;
+
+                            const sqDist = (c.r - r)**2 + (c.g - g)**2 + (c.b - b)**2;
                             if (sqDist < minActualSqDist) minActualSqDist = sqDist;
                         }
                     }
