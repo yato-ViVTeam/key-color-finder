@@ -16,13 +16,13 @@
     <div class="max-w-4xl mx-auto p-6">
         <header class="text-center mb-10 mt-8">
             <h1 class="text-3xl font-bold text-gray-900 mb-2">🎨 最適色摘出ツール</h1>
-            <p class="text-gray-600">3DやLive2Dのテクスチャから、約1677万色の中で一番「使われていないほど遠い色」を数値的に計算します。</p>
+            <p class="text-gray-600">3DやLive2Dのテクスチャから、約1677万色の中で一番「使われていないほど遠い色」を数値的に計算します。※ちなみに白は200色あるものとする。</p>
         </header>
 
         <main class="space-y-8">
             <!-- ファイル入力エリア -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <h2 class="text-lg font-semibold mb-4">1. テクスチャ画像の読み込み</h2>
+                <h2 class="text-lg font-semibold mb-4">1. テクスチャ画像の読み込み　※立ち絵はダメです。</h2>
                 <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-10 text-center hover:bg-gray-50 transition cursor-pointer relative">
                     <input type="file" id="fileInput" multiple accept="image/png, image/jpeg" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                     <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -40,6 +40,37 @@
                     </div>
                     <div id="imageGrid" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3 max-h-60 overflow-y-auto p-2 border border-gray-100 rounded bg-gray-50">
                         <!-- サムネイルがここに追加されます -->
+                    </div>
+                </div>
+
+                <!-- オプションエリア (新規追加) -->
+                <div class="mt-6 p-4 bg-blue-50/50 rounded-lg border border-blue-100 text-sm">
+                    <h3 class="font-bold text-blue-800 mb-3 flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        ⚙️ 解析オプション (綺麗に抜けない場合の調整)
+                    </h3>
+                    <div class="flex flex-col space-y-3 pl-1">
+                        <label class="flex items-start space-x-3 cursor-pointer">
+                            <input type="checkbox" id="preferChromaColors" class="rounded text-blue-600 mt-0.5" checked>
+                            <div>
+                                <span class="font-medium text-gray-800 block">「透過ソフトで抜けやすい色」を優先する <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs ml-1">推奨</span></span>
+                                <span class="text-xs text-gray-500">オンにすると、白や肌色と誤爆しやすい「黄色」などを避け、透過に最適な「緑・青・マゼンタ系」を優先的に提案します。あえてオフでも意外といける結果になる可能性もある。</span>
+                            </div>
+                        </label>
+                        <label class="flex items-start space-x-3 cursor-pointer">
+                            <input type="checkbox" id="ignoreDarkNoise" class="rounded text-blue-600 mt-0.5" checked>
+                            <div>
+                                <span class="font-medium text-gray-800 block">黒い背景のノイズを無視する</span>
+                                <span class="text-xs text-gray-500">真っ黒の背景のJPG画像にある見えないノイズを無視し、計算の精度を上げます。</span>
+                            </div>
+                        </label>
+                        <label class="flex items-start space-x-3 cursor-pointer">
+                            <input type="checkbox" id="ignoreLightNoise" class="rounded text-blue-600 mt-0.5">
+                            <div>
+                                <span class="font-medium text-gray-800 block">白い背景のノイズを無視する</span>
+                                <span class="text-xs text-gray-500">真っ白の背景のJPG画像の場合にチェックを入れてください。</span>
+                            </div>
+                        </label>
                     </div>
                 </div>
             </div>
@@ -139,6 +170,11 @@
         const progressText = document.getElementById('progressText');
         const resultArea = document.getElementById('resultArea');
         
+        // オプション用DOM
+        const ignoreDarkNoise = document.getElementById('ignoreDarkNoise');
+        const ignoreLightNoise = document.getElementById('ignoreLightNoise');
+        const preferChromaColors = document.getElementById('preferChromaColors');
+        
         // 結果表示用DOM
         const resultColorBox = document.getElementById('resultColorBox');
         const resultColorName = document.getElementById('resultColorName');
@@ -231,10 +267,9 @@
         }
 
         function rgbToHex(r, g, b) {
-            return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1).toUpperCase();
+            return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1).toUpperCase().padStart(6, '0');
         }
 
-        // 大まかな色相名を取得する関数
         function getColorFamilyName(r, g, b) {
             const max = Math.max(r, g, b);
             const min = Math.min(r, g, b);
@@ -258,7 +293,6 @@
         async function startAnalysis() {
             if (loadedImages.length === 0) return;
 
-            // UI更新
             analyzeBtn.disabled = true;
             loadingSpinner.classList.remove('hidden');
             btnText.textContent = '空間解析中...';
@@ -270,7 +304,6 @@
             await new Promise(resolve => setTimeout(resolve, 50));
 
             try {
-                // 1. すべての画像から使用されているピクセルデータを取得（縮小して処理）
                 const allPixelDataArrays = [];
                 const MAX_SIZE = 200; 
 
@@ -289,13 +322,15 @@
                     allPixelDataArrays.push(ctx.getImageData(0, 0, w, h).data);
                 }
 
-                // 2. 高速化のため、RGB空間をグリッドに分割して「使われている色領域」をマーク
                 progressText.textContent = '色空間マップを作成中...';
                 await new Promise(resolve => setTimeout(resolve, 10));
 
-                const GRID_DIVISIONS = 16; // 16x16x16 = 4096グリッド
-                const CELL_SIZE = 256 / GRID_DIVISIONS; // 16
+                const GRID_DIVISIONS = 16; 
+                const CELL_SIZE = 256 / GRID_DIVISIONS; 
                 const usedGrids = new Set();
+                
+                const isIgnoreDark = ignoreDarkNoise.checked;
+                const isIgnoreLight = ignoreLightNoise.checked;
 
                 for (const data of allPixelDataArrays) {
                     for (let p = 0; p < data.length; p += 4) {
@@ -304,7 +339,11 @@
                         const b = data[p+2];
                         const a = data[p+3];
 
-                        if (a === 0) continue; // 透明は無視
+                        if (a === 0) continue; 
+                        
+                        // 背景ノイズの無視オプション
+                        if (isIgnoreDark && r < 15 && g < 15 && b < 15) continue;
+                        if (isIgnoreLight && r > 240 && g > 240 && b > 240) continue;
 
                         // GB用の緑(00FF00)とBB用の青(0000FF)を無視
                         if (r === 0 && g === 255 && b === 0) continue;
@@ -322,11 +361,12 @@
                     return { r, g, b };
                 });
 
-                // 3. 全グリッド（4096個）について、使用されているグリッドからの最短距離を計算
                 progressText.textContent = '最適な空白領域を探索中...';
                 await new Promise(resolve => setTimeout(resolve, 10));
 
                 const gridCandidates = [];
+                const isPreferChroma = preferChromaColors.checked;
+
                 for (let r = 0; r < GRID_DIVISIONS; r++) {
                     for (let g = 0; g < GRID_DIVISIONS; g++) {
                         for (let b = 0; b < GRID_DIVISIONS; b++) {
@@ -339,19 +379,53 @@
                             const rgbR = Math.floor(r * CELL_SIZE + CELL_SIZE / 2);
                             const rgbG = Math.floor(g * CELL_SIZE + CELL_SIZE / 2);
                             const rgbB = Math.floor(b * CELL_SIZE + CELL_SIZE / 2);
-                            // 彩度(簡易計算)を付与（原色に近いものを優先するため）
-                            const saturation = Math.max(rgbR, rgbG, rgbB) - Math.min(rgbR, rgbG, rgbB);
+                            
+                            let gridScore = minSqDist;
 
-                            gridCandidates.push({ r: rgbR, g: rgbG, b: rgbB, gridScore: minSqDist, saturation });
+                            // クロマキー適性ボーナス/ペナルティの計算
+                            if (isPreferChroma) {
+                                const maxColor = Math.max(rgbR, rgbG, rgbB);
+                                const minColor = Math.min(rgbR, rgbG, rgbB);
+                                const sat = maxColor - minColor;
+                                
+                                let penalty = 0;
+                                // 1. 彩度が低い（グレー・白・黒に近い）色はペナルティ
+                                penalty += (255 - sat) * 1000; 
+                                
+                                // 2. 肌色や白と誤爆しやすい色相にペナルティ
+                                if (sat > 0) {
+                                    let h = 0;
+                                    if (maxColor === rgbR) h = 60 * ((rgbG - rgbB) / sat);
+                                    else if (maxColor === rgbG) h = 60 * ((rgbB - rgbR) / sat) + 120;
+                                    else if (maxColor === rgbB) h = 60 * ((rgbR - rgbG) / sat) + 240;
+                                    if (h < 0) h += 360;
+                                    
+                                    // 肌色〜黄色(10〜100)は非常に誤爆しやすい -> 絶対に選ばれないレベルの特大ペナルティ
+                                    if (h > 10 && h < 100) penalty += 500000; 
+                                    // 赤系(330〜360, 0〜10)も肌色に近い
+                                    if (h > 330 || h <= 10) penalty += 200000;
+                                    // シアン系(160〜200)は白に近い明るさになるためペナルティ
+                                    if (h > 160 && h < 200) penalty += 100000;
+
+                                    // 逆に、クロマキー適性が高い緑(100-160)、青(200-260)、マゼンタ(260-330)にはボーナス
+                                    if ((h >= 100 && h <= 160) || (h >= 200 && h <= 330)) {
+                                        gridScore += 50000;
+                                    }
+                                }
+                                
+                                gridScore -= penalty;
+                            } else {
+                                // 通常モードでも彩度を少しだけ評価(タイブレーク用)
+                                gridScore += (Math.max(rgbR, rgbG, rgbB) - Math.min(rgbR, rgbG, rgbB));
+                            }
+
+                            gridCandidates.push({ r: rgbR, g: rgbG, b: rgbB, gridScore: gridScore });
                         }
                     }
                 }
 
-                // グリッドスコア降順、次に彩度降順でソート
-                gridCandidates.sort((a, b) => {
-                    if (b.gridScore !== a.gridScore) return b.gridScore - a.gridScore;
-                    return b.saturation - a.saturation;
-                });
+                // スコア降順でソート
+                gridCandidates.sort((a, b) => b.gridScore - a.gridScore);
 
                 // 似た色を排除しながら上位候補を抽出
                 const topCandidates = [];
@@ -359,15 +433,14 @@
                     let isTooClose = false;
                     for (const tc of topCandidates) {
                         const d = Math.sqrt((c.r - tc.r)**2 + (c.g - tc.g)**2 + (c.b - tc.b)**2);
-                        if (d < 50) { isTooClose = true; break; } // RGB距離50以内の類似色はスキップ
+                        if (d < 60) { isTooClose = true; break; } 
                     }
                     if (!isTooClose) {
                         topCandidates.push(c);
-                        if (topCandidates.length >= 6) break; // 上位6つを取得
+                        if (topCandidates.length >= 6) break; 
                     }
                 }
 
-                // 4. 上位候補について、画像の実際のピクセルと再計算し、厳密な最小距離を理論値として出す
                 progressText.textContent = '理論スコアを計算中...';
                 await new Promise(resolve => setTimeout(resolve, 10));
 
@@ -381,8 +454,10 @@
                             const a = data[p+3];
 
                             if (a === 0) continue;
-
-                            // GB用の緑(00FF00)とBB用の青(0000FF)を無視
+                            
+                            // 実際の距離計算でもノイズ無視を適用
+                            if (isIgnoreDark && r < 15 && g < 15 && b < 15) continue;
+                            if (isIgnoreLight && r > 240 && g > 240 && b > 240) continue;
                             if (r === 0 && g === 255 && b === 0) continue;
                             if (r === 0 && g === 0 && b === 255) continue;
 
@@ -396,11 +471,13 @@
                     c.familyName = getColorFamilyName(c.r, c.g, c.b);
                 }
 
-                // 実際の距離で最終ソート
-                topCandidates.sort((a, b) => b.actualMinDist - a.actualMinDist);
+                // 表示のために、実際の距離順に再ソート（ペナルティを受けた色でも距離の事実順で並べる）
+                // ただし1位はペナルティ評価後の最高スコアのものを維持する
+                const bestColor = topCandidates[0];
+                const others = topCandidates.slice(1).sort((a, b) => b.actualMinDist - a.actualMinDist);
+                const finalResults = [bestColor, ...others];
 
-                // 結果の表示
-                showResults(topCandidates);
+                showResults(finalResults);
 
             } catch (error) {
                 console.error("解析エラー:", error);
@@ -416,30 +493,25 @@
         function showResults(results) {
             const bestColor = results[0];
 
-            // メイン結果の更新
             resultColorBox.style.backgroundColor = bestColor.hex;
             resultColorName.textContent = bestColor.familyName;
             resultHexCode.textContent = bestColor.hex;
             resultRgbText.textContent = `RGB(${bestColor.r}, ${bestColor.g}, ${bestColor.b})`;
             demoPreviewBox.style.backgroundColor = bestColor.hex;
 
-            // 統計データの更新 (アニメーション付き)
             const dist = bestColor.actualMinDist.toFixed(1);
             const percent = bestColor.scorePercent.toFixed(1);
             
             distValue.textContent = dist;
             distPercent.textContent = percent;
             
-            // 少し遅延させてプログレスバーを伸ばすアニメーション
             setTimeout(() => {
                 distProgressBar.style.width = `${percent}%`;
-                // スコアに応じた色分け
                 if(percent > 30) distProgressBar.className = "bg-green-500 h-3 rounded-full transition-all duration-1000 ease-out";
                 else if(percent > 15) distProgressBar.className = "bg-yellow-500 h-3 rounded-full transition-all duration-1000 ease-out";
                 else distProgressBar.className = "bg-red-500 h-3 rounded-full transition-all duration-1000 ease-out";
             }, 100);
 
-            // 他の候補の表示 (2位以降)
             otherCandidates.innerHTML = '';
             for (let i = 1; i < results.length; i++) {
                 const color = results[i];
@@ -463,7 +535,6 @@
                 btn.appendChild(hexLabel);
                 btn.appendChild(scoreLabel);
                 
-                // クリックでプレビューと統計を切り替え
                 btn.addEventListener('click', () => {
                     resultColorBox.style.backgroundColor = color.hex;
                     resultColorName.textContent = color.familyName;
@@ -474,6 +545,10 @@
                     distValue.textContent = color.actualMinDist.toFixed(1);
                     distPercent.textContent = color.scorePercent.toFixed(1);
                     distProgressBar.style.width = `${color.scorePercent.toFixed(1)}%`;
+                    
+                    if(color.scorePercent > 30) distProgressBar.className = "bg-green-500 h-3 rounded-full transition-all duration-1000 ease-out";
+                    else if(color.scorePercent > 15) distProgressBar.className = "bg-yellow-500 h-3 rounded-full transition-all duration-1000 ease-out";
+                    else distProgressBar.className = "bg-red-500 h-3 rounded-full transition-all duration-1000 ease-out";
                 });
                 
                 otherCandidates.appendChild(btn);
