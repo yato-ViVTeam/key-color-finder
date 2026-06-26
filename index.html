@@ -16,7 +16,7 @@
     <div class="max-w-4xl mx-auto p-6">
         <header class="text-center mb-10 mt-8">
             <h1 class="text-3xl font-bold text-gray-900 mb-2">🎨 最適色摘出ツール</h1>
-            <p class="text-gray-600">3DやLive2Dのテクスチャから、約1677万色の中で一番「使われていないほど遠い色」を数値的に計算します。※ちなみに白は200色あるものとする。</p>
+            <p class="text-gray-600">3DやLive2Dのテクスチャから、約1677万色の中で一番「使われていないほど遠い色」を数値的に計算します。<br>※ちなみに白は200色あるものとする。</p>
         </header>
 
         <main class="space-y-8">
@@ -54,7 +54,7 @@
                             <input type="checkbox" id="preferChromaColors" class="rounded text-blue-600 mt-0.5" checked>
                             <div>
                                 <span class="font-medium text-gray-800 block">「透過ソフトで抜けやすい色」を優先する <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs ml-1">推奨</span></span>
-                                <span class="text-xs text-gray-500">オンにすると、白や肌色と誤爆しやすい「黄色」などを避け、透過に最適な「緑・青・マゼンタ系」を優先的に提案します。あえてオフでも意外といける結果になる可能性もある。</span>
+                                <span class="text-xs text-gray-500">オンにすると、白や肌色と誤爆しやすい「黄色」などを避け、透過に最適な「緑・青・マゼンタ系」を優先的に提案します。<br>あえてオフでも意外といける結果になる可能性もある。<br>私はオフも好き。</span>
                             </div>
                         </label>
                         <label class="flex items-start space-x-3 cursor-pointer">
@@ -112,9 +112,9 @@
                     <div class="mt-4 pt-4 border-t border-indigo-200">
                         <p class="text-xs font-bold text-indigo-800 mb-2">【安心度スコアの目安】</p>
                         <ul class="text-xs text-gray-700 space-y-2">
-                            <li><span class="inline-block w-3 h-3 bg-green-500 rounded-full mr-1 align-middle"></span><strong class="text-green-700">30%以上: 完璧。</strong> どんな設定でも綺麗に透過可能です。</li>
-                            <li><span class="inline-block w-3 h-3 bg-yellow-500 rounded-full mr-1 align-middle"></span><strong class="text-yellow-700">15%〜29%: 安全。</strong> 一般的なソフトで問題なく透過できます。<br><span class="text-[10px] text-gray-500 ml-4">※色空間の計算上、40%を超えることは非常に稀なので、15%以上あれば十分実用的です。</span></li>
-                            <li><span class="inline-block w-3 h-3 bg-red-500 rounded-full mr-1 align-middle"></span><strong class="text-red-700">15%未満: 注意。</strong> 透過ソフトの「類似度(Tolerance)」を厳しめに設定してください。</li>
+                            <li><span class="inline-block w-3 h-3 bg-green-500 rounded-full mr-1 align-middle"></span><strong class="text-green-700">30%以上: 完璧。</strong> おそらく綺麗に透過可能です。</li>
+                            <li><span class="inline-block w-3 h-3 bg-yellow-500 rounded-full mr-1 align-middle"></span><strong class="text-yellow-700">15%〜29%: 安全。</strong> まぁある程度は透過できます。<br><span class="text-[10px] text-gray-500 ml-4">※色空間の計算上、40%を超えることは非常に稀なので、15%以上あれば実用的です。</span></li>
+                            <li><span class="inline-block w-3 h-3 bg-red-500 rounded-full mr-1 align-middle"></span><strong class="text-red-700">15%未満: 注意。</strong> ごめんなさい。ソフト側での設定頑張ってください。</li>
                         </ul>
                     </div>
                 </div>
